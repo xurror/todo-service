@@ -9,4 +9,6 @@ public interface TodoService {
     TodoDTO getTodo(Long todoId);
 
     List<TodoDTO> getTodos(List<Integer> status);
+
+    TodoDTO createTodo(TodoDTO todoDTO);
 }

@@ -15,6 +15,9 @@ public enum Status {
     }
 
     public static Status fromInt(final Integer code) {
+        if (code == null) {
+            return TODO;
+        }
         return switch (code) {
             case 1 -> TODO;
             case 2 -> DONE;

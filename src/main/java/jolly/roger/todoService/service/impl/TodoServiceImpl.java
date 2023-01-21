@@ -28,4 +28,11 @@ public class TodoServiceImpl implements TodoService {
         List<Todo> todos = this.todoRepository.findByStatusIn(statuses);
         return todos.stream().map(TodoDTO::fromEntity).toList();
     }
+
+    @Override
+    public TodoDTO createTodo(TodoDTO todoDTO) {
+        Todo todo = todoDTO.toEntity();
+        todo = this.todoRepository.save(todo);
+        return TodoDTO.fromEntity(todo);
+    }
 }

@@ -37,10 +37,11 @@ public class Todo {
     @Column(name = "description")
     private String description;
 
+    @Builder.Default
     @Column(name = "status")
     @JdbcTypeCode(SqlTypes.TINYINT)
     @Convert(converter = StatusAttributeConverter.class)
-    private Status status;
+    private Status status = Status.TODO;
 
     @Column(name = "due_date")
     private Instant dueDate;

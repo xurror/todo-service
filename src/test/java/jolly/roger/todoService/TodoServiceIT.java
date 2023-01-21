@@ -12,11 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,6 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class TodoServiceIT {
+
+    private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @Autowired
     private MockMvc restMockMvc;
@@ -55,11 +59,12 @@ public class TodoServiceIT {
                 .dueDate(testDueDate)
                 .build();
         restMockMvc.perform(post("/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsBytes(testTodo)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.description").value(testDescription))
-                .andExpect(jsonPath("$.dueDate").value(testDueDate))
+                .andExpect(jsonPath("$.dueDate").value(testDueDate.format(DTF)))
                 .andReturn();
     }
 
