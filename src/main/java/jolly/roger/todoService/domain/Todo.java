@@ -7,11 +7,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
@@ -19,6 +21,7 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.Instant;
 import java.util.Objects;
 
+@AllArgsConstructor
 @Builder
 @Getter
 @Setter
@@ -35,11 +38,10 @@ public class Todo {
     @Column(name = "description")
     private String description;
 
-    @Builder.Default
     @Column(name = "status")
     @JdbcTypeCode(SqlTypes.TINYINT)
     @Convert(converter = StatusAttributeConverter.class)
-    private Status status = Status.TODO;
+    private Status status;
 
     @Column(name = "due_date")
     private Instant dueDate;
@@ -47,9 +49,13 @@ public class Todo {
     @Column(name = "done_date")
     private Instant doneDate;
 
-    @CreatedDate
+    @CreationTimestamp
     @Column(name = "created_date")
     private Instant createdDate;
+
+    public Todo() {
+        this.status = Status.TODO;
+    }
 
     @Override
     public boolean equals(Object o) {

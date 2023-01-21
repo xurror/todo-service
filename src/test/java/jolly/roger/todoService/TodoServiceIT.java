@@ -46,7 +46,7 @@ public class TodoServiceIT {
                 .description(testDescription)
                 .dueDate(testDueDate)
                 .build();
-        restMockMvc.perform(post("/todo")
+        restMockMvc.perform(post("/todos")
                         .content(mapper.writeValueAsBytes(testTodo)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
@@ -71,7 +71,7 @@ public class TodoServiceIT {
         String updatedDescription = "Todo with new Description";
         testTodo.setDescription(updatedDescription);
 
-        restMockMvc.perform(put("/todo")
+        restMockMvc.perform(put("/todos")
                 .content(mapper.writeValueAsBytes(testTodo)))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.id").value(testId))
@@ -94,7 +94,7 @@ public class TodoServiceIT {
         Long testId = testTodo.getId();
         testTodo.setStatus(Status.DONE);
 
-        restMockMvc.perform(put("/todo")
+        restMockMvc.perform(put("/todos")
                         .content(mapper.writeValueAsBytes(testTodo)))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.id").value(testId))
@@ -117,7 +117,7 @@ public class TodoServiceIT {
         Long testId = testTodo.getId();
         testTodo.setStatus(Status.TODO);
 
-        restMockMvc.perform(put("/todo")
+        restMockMvc.perform(put("/todos")
                         .content(mapper.writeValueAsBytes(testTodo)))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.id").value(testId))
@@ -140,9 +140,9 @@ public class TodoServiceIT {
                     .status(Status.fromInt(status))
                     .build());
         }
-        todos = this.todoRepository.saveAll(todos);
+        this.todoRepository.saveAll(todos);
 
-        restMockMvc.perform(get("/todo")
+        restMockMvc.perform(get("/todos")
                         .param("status", String.valueOf(Status.TODO.getCode())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].id").isNumber())
@@ -162,8 +162,7 @@ public class TodoServiceIT {
         assert testTodo.getId() != null;
         Long testId = testTodo.getId();
 
-        restMockMvc.perform(get("/todo")
-                        .content(mapper.writeValueAsBytes(testTodo)))
+        restMockMvc.perform(get("/todos/" + testId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(testId))
                 .andExpect(jsonPath("$.status").value(Status.DONE.getCode()))
