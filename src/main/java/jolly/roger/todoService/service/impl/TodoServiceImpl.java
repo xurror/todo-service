@@ -6,8 +6,11 @@ import jolly.roger.todoService.domain.TodoRepository;
 import jolly.roger.todoService.dto.TodoDTO;
 import jolly.roger.todoService.service.TodoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -32,6 +35,16 @@ public class TodoServiceImpl implements TodoService {
     @Override
     public TodoDTO createTodo(TodoDTO todoDTO) {
         Todo todo = todoDTO.toEntity();
+        todo = this.todoRepository.save(todo);
+        return TodoDTO.fromEntity(todo);
+    }
+
+    @Override
+    public TodoDTO updateTodo(Long todoId, TodoDTO todoDTO) {
+        Todo todo = todoDTO.toEntity();
+        if (todo.getDueDate() != null && Instant.now().isAfter(todo.getDueDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Forbidden Update, Item is past due");
+        }
         todo = this.todoRepository.save(todo);
         return TodoDTO.fromEntity(todo);
     }

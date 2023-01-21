@@ -11,4 +11,6 @@ public interface TodoService {
     List<TodoDTO> getTodos(List<Integer> status);
 
     TodoDTO createTodo(TodoDTO todoDTO);
+
+    TodoDTO updateTodo(Long todoId, TodoDTO todoDTO);
 }

@@ -4,10 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jolly.roger.todoService.domain.Status;
 import jolly.roger.todoService.domain.Todo;
-import jolly.roger.todoService.dto.TodoDTO;
 import jolly.roger.todoService.domain.TodoRepository;
+import jolly.roger.todoService.dto.TodoDTO;
 import net.bytebuddy.utility.RandomString;
-import org.hamcrest.collection.ArrayAsIterableMatcher;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,12 +20,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -84,8 +82,9 @@ public class TodoServiceIT {
         String updatedDescription = "Todo with new Description";
         testTodo.setDescription(updatedDescription);
 
-        restMockMvc.perform(put("/todos")
-                .content(mapper.writeValueAsBytes(testTodo)))
+        restMockMvc.perform(put("/todos/" + testId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(TodoDTO.fromEntity(testTodo))))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.id").value(testId))
                 .andExpect(jsonPath("$.description").value(updatedDescription))
@@ -107,8 +106,9 @@ public class TodoServiceIT {
         Long testId = testTodo.getId();
         testTodo.setStatus(Status.DONE);
 
-        restMockMvc.perform(put("/todos")
-                        .content(mapper.writeValueAsBytes(testTodo)))
+        restMockMvc.perform(put("/todos/" + testId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(TodoDTO.fromEntity(testTodo))))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.id").value(testId))
                 .andExpect(jsonPath("$.status").value(Status.DONE.getCode()))
@@ -130,12 +130,37 @@ public class TodoServiceIT {
         Long testId = testTodo.getId();
         testTodo.setStatus(Status.TODO);
 
-        restMockMvc.perform(put("/todos")
-                        .content(mapper.writeValueAsBytes(testTodo)))
+        restMockMvc.perform(put("/todos/" + testId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(TodoDTO.fromEntity(testTodo))))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.id").value(testId))
                 .andExpect(jsonPath("$.status").value(Status.TODO.getCode()))
                 .andReturn();
+    }
+
+    //    mark an item as "not done",
+    @Test
+    public void updateItemWithPastDueDate() throws Exception {
+        Todo testTodo = Todo.builder()
+                .description(RandomString.make(10))
+                .status(Status.DONE)
+                .dueDate(Instant.now().minus(5, ChronoUnit.DAYS))
+                .build();
+        testTodo = todoRepository.save(testTodo);
+
+        assert testTodo.getId() != null;
+        assert testTodo.getStatus() == Status.DONE;
+
+        Long testId = testTodo.getId();
+        testTodo.setStatus(Status.TODO);
+
+        String error =  Objects.requireNonNull(restMockMvc.perform(put("/todos/" + testId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(TodoDTO.fromEntity(testTodo))))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResolvedException()).getMessage();
+        assertThat(error, containsString("Forbidden Update, Item is past due"));
     }
 
 //    get all items that are "not done" (with an option to retrieve all items),
