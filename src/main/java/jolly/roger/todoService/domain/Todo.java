@@ -1,4 +1,4 @@
-package jolly.roger.todoService.model;
+package jolly.roger.todoService.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -7,10 +7,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
@@ -25,35 +23,32 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
 @Entity
-@Table("todo")
+@Table(name = "todo")
 public class Todo {
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column("description")
+    @Column(name = "description")
     private String description;
 
-
-    @Column("status")
+    @Builder.Default
+    @Column(name = "status")
     @JdbcTypeCode(SqlTypes.TINYINT)
     @Convert(converter = StatusAttributeConverter.class)
-    private Status status;
+    private Status status = Status.TODO;
 
-    @Column("due_date")
+    @Column(name = "due_date")
     private Instant dueDate;
 
-    @Column("done_date")
+    @Column(name = "done_date")
     private Instant doneDate;
 
     @CreatedDate
-    @Column("created_date")
+    @Column(name = "created_date")
     private Instant createdDate;
 
     @Override

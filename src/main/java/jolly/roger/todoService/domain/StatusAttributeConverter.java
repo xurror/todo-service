@@ -1,4 +1,4 @@
-package jolly.roger.todoService.model;
+package jolly.roger.todoService.domain;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

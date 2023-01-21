@@ -1,4 +1,4 @@
-package jolly.roger.todoService.model;
+package jolly.roger.todoService.domain;
 
 public enum Status {
     INVALID(0, "invalid"),
