@@ -2,7 +2,11 @@ package jolly.roger.todoService.service;
 
 import jolly.roger.todoService.dto.TodoDTO;
 
-public interface TodoService {
+import java.util.List;
 
+public interface TodoService {
+    
     TodoDTO getTodo(Long todoId);
+
+    List<TodoDTO> getTodos(List<Integer> status);
 }

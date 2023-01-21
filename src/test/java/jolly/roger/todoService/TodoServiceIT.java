@@ -1,11 +1,13 @@
 package jolly.roger.todoService;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jolly.roger.todoService.domain.Status;
 import jolly.roger.todoService.domain.Todo;
 import jolly.roger.todoService.dto.TodoDTO;
 import jolly.roger.todoService.domain.TodoRepository;
 import net.bytebuddy.utility.RandomString;
+import org.hamcrest.collection.ArrayAsIterableMatcher;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,10 +16,16 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -41,7 +49,7 @@ public class TodoServiceIT {
     @Test
     public void createTodo() throws Exception {
         String testDescription = "A Test Todo";
-        Instant testDueDate = Instant.now().plus(5, ChronoUnit.DAYS);
+        LocalDateTime testDueDate = LocalDateTime.now().plus(5, ChronoUnit.DAYS);
         TodoDTO testTodo = TodoDTO.builder()
                 .description(testDescription)
                 .dueDate(testDueDate)
@@ -145,8 +153,13 @@ public class TodoServiceIT {
         restMockMvc.perform(get("/todos")
                         .param("status", String.valueOf(Status.TODO.getCode())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].id").isNumber())
-                .andExpect(jsonPath("$[*].status").value(Status.TODO.getCode()))
+                .andExpect(jsonPath("$[*].id").exists())
+                .andExpect(jsonPath("$[*].status").isArray())
+                .andDo(result -> {
+                    List<TodoDTO> todoDTOS = mapper.readValue(result.getResponse().getContentAsByteArray(),
+                            new TypeReference<>() {});
+                    todoDTOS.forEach(todo -> assertThat(todo.status(), is(Status.TODO.getCode())));
+                })
                 .andReturn();
     }
 
